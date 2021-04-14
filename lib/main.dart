@@ -1,87 +1,89 @@
 import 'package:flutter/material.dart';
-import './dummy_data.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import './providers/language_provider.dart';
+import './screens/themes_screen.dart';
+import './providers/meal_provider.dart';
+import './providers/theme_provider.dart';
 import './screens/filters_screen.dart';
 import './screens/tabs_screen.dart';
 import './screens/meal_detail_screen.dart';
 import './screens/categories_screen.dart';
 import './screens/category_meals_screen.dart';
-import './models/meal.dart';
+import './screens/on_boarding_screen.dart';
 
-void main() => runApp(MyApp());
+void main() async {
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
+  WidgetsFlutterBinding.ensureInitialized();
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  Widget homeScreen = (prefs.getBool('watched') ?? false) ? TabsScreen() : OnBoardingScreen();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<MealProvider>(
+          create: (context) => MealProvider(),
+        ),
+        ChangeNotifierProvider<ThemeProvider>(
+          create: (context) => ThemeProvider(),
+        ),
+        ChangeNotifierProvider<LanguageProvider>(
+          create: (context) => LanguageProvider(),
+        ),
+      ],
+      child: MyApp(homeScreen),
+    )
+  );
 }
 
-class _MyAppState extends State<MyApp> {
+class MyApp extends StatelessWidget {
+  final Widget mainScreen;
 
-  Map<String, bool> _filters = {
-    'gluten': false,
-    'lactose': false,
-    'vegan': false,
-    'vegetarian': false,
-  };
-
-  List<Meal> _availableMeals = DUMMY_MEALS;
-  List<Meal> _favoriteMeals = [];
-
-  void _setFilters(Map<String, bool> _filterData) {
-    setState(() {
-      _filters = _filterData;
-
-      _availableMeals = DUMMY_MEALS.where((meal) {
-        if (_filterData['gluten'] && !meal.isGlutenFree) {
-          return false;
-        }
-        if (_filterData['lactose'] && !meal.isLactoseFree) {
-          return false;
-        }
-        if (_filterData['vegan'] && !meal.isVegan) {
-          return false;
-        }
-        if (_filterData['vegetarian'] && meal.isVegetarian) {
-          return false;
-        }
-        return true;
-      }).toList();
-    });
-  }
-
-  void _toggleFavorite(String mealId) {
-    final existingIndex = _favoriteMeals.indexWhere((meal) => meal.id == mealId);
-    if (existingIndex >= 0) {
-      setState(() {
-        _favoriteMeals.removeAt(existingIndex);
-      });
-    } else {
-      setState(() {
-        _favoriteMeals.add(DUMMY_MEALS.firstWhere((meal) => meal.id == mealId));
-      });
-    }
-  }
-
-  bool _isMealFavorite(String id) {
-    return _favoriteMeals.any((meal) => meal.id == id);
-  }
+  MyApp(this.mainScreen);
 
   @override
   Widget build(BuildContext context) {
+    var primaryColor = Provider.of<ThemeProvider>(context, listen: true).primaryColor;
+    var accentColor = Provider.of<ThemeProvider>(context, listen: true).accentColor;
+    var tm = Provider.of<ThemeProvider>(context, listen: true).tm;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
+      themeMode: tm,
       theme: ThemeData(
-        primaryColor: Colors.pink,
-        accentColor: Colors.amber,
+        primarySwatch: primaryColor,
+        accentColor: accentColor,
         canvasColor: Color.fromRGBO(255, 254, 229, 1),
+        fontFamily: 'Raleway',
+        buttonColor: Colors.black87,
+        cardColor: Colors.white,
+        shadowColor: Colors.white60,
         textTheme: ThemeData.light().textTheme.copyWith(
-          body1: TextStyle(
-            color: Color.fromRGBO(20, 50, 50, 1)
+          bodyText1: TextStyle(color: Color.fromRGBO(20, 50, 50, 1)),
+          headline6: TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontFamily: 'RobotoCondensed',
+            fontWeight: FontWeight.bold,
           ),
-          body2: TextStyle(
-            color: Color.fromRGBO(20, 50, 50, 1)
+        ),
+      ),
+      darkTheme: ThemeData(
+        primarySwatch: primaryColor,
+        accentColor: accentColor,
+        canvasColor: Color.fromRGBO(14, 22, 33, 1),
+        fontFamily: 'Raleway',
+        buttonColor: Colors.white70,
+        cardColor: Color.fromRGBO(35, 34, 39, 1),
+        shadowColor: Colors.white60,
+        unselectedWidgetColor: Colors.white70,
+        textTheme: ThemeData.dark().textTheme.copyWith(
+          bodyText1: TextStyle(
+            color: Colors.white60
           ),
-          title: TextStyle(
+          headline6: TextStyle(
+            color: Colors.white60,
             fontSize: 20,
             fontFamily: 'RobotoCondensed',
             fontWeight: FontWeight.bold,
@@ -89,10 +91,12 @@ class _MyAppState extends State<MyApp> {
         )
       ),
       routes: {
-        '/': (context) => TabsScreen(_favoriteMeals),
-        CategoryMealsScreen.routName: (context) => CategoryMealsScreen(_availableMeals),
-        MealDetailScreen.routName: (context) => MealDetailScreen(_toggleFavorite, _isMealFavorite),
-        FiltersScreen.routName: (context) => FiltersScreen(_filters, _setFilters)
+        '/': (context) => mainScreen,
+        TabsScreen.routeName: (ctx) => TabsScreen(),
+        CategoryMealsScreen.routeName: (context) => CategoryMealsScreen(),
+        MealDetailScreen.routeName: (context) => MealDetailScreen(),
+        FiltersScreen.routeName: (context) => FiltersScreen(),
+        ThemesScreen.routeName: (context) => ThemesScreen(),
       },
     );
   }

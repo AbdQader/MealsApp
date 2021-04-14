@@ -1,34 +1,15 @@
 import 'package:flutter/material.dart';
+import '../providers/meal_provider.dart';
 import '../widgets/main_drawer.dart';
+import 'package:provider/provider.dart';
 
-class FiltersScreen extends StatefulWidget {
+class FiltersScreen extends StatelessWidget {
 
-  static const routName = '/filters';
+  static const routeName = '/filters';
 
-  final Map<String, bool> currentFilters;
-  final Function saveFilters;
+  final bool fromOnBoarding;
 
-  FiltersScreen(this.currentFilters, this.saveFilters);
-
-  @override
-  _FiltersScreenState createState() => _FiltersScreenState();
-}
-
-class _FiltersScreenState extends State<FiltersScreen> {
-
-  bool _glutenFree = false;
-  bool _lactoseFree = false;
-  bool _vegan = false;
-  bool _vegetarian = false;
-
-  @override
-  initState() {
-    _glutenFree = widget.currentFilters['gluten'];
-    _lactoseFree = widget.currentFilters['lactose'];
-    _vegan = widget.currentFilters['vegan'];
-    _vegetarian = widget.currentFilters['vegetarian'];
-    super.initState();
-  }
+  FiltersScreen({this.fromOnBoarding = false});
 
   Widget buildSwitchListTile(String title, String subtitle, bool currentValue, Function updateValue) {
     return SwitchListTile(
@@ -36,36 +17,22 @@ class _FiltersScreenState extends State<FiltersScreen> {
       subtitle: Text(subtitle),
       value: currentValue,
       onChanged: updateValue,
+      //inactiveTrackColor: Colors.black,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, bool> currentFilters = Provider.of<MealProvider>(context, listen: true).filters;
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Your Filters'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.save),
-            onPressed: () {
-              final Map<String, bool> _selectedFilters = {
-                'gluten': _glutenFree,
-                'lactose': _lactoseFree,
-                'vegan': _vegan,
-                'vegetarian': _vegetarian,
-              };
-              widget.saveFilters(_selectedFilters);
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text('Your Filters'),),
       body: Column(
         children: [
           Container(
             padding: EdgeInsets.all(20),
             child: Text(
               'Adjust your meal selection',
-              style: Theme.of(context).textTheme.title,
+              style: Theme.of(context).textTheme.headline6,
             ),
           ),
           Expanded(
@@ -74,41 +41,37 @@ class _FiltersScreenState extends State<FiltersScreen> {
                 buildSwitchListTile(
                   'Gluten-free', 
                   'Only include gluten-free meals', 
-                  _glutenFree,
+                  currentFilters['gluten'],
                   (newValue) {
-                    setState(() {
-                      _glutenFree = newValue;
-                    });
+                    currentFilters['gluten'] = newValue;
+                    Provider.of<MealProvider>(context, listen: false).setFilters();
                   }
                 ),
                 buildSwitchListTile(
                   'Lactose-free', 
                   'Only include lactose-free meals', 
-                  _lactoseFree,
+                  currentFilters['lactose'],
                   (newValue) {
-                    setState(() {
-                      _lactoseFree = newValue;
-                    });
+                    currentFilters['lactose'] = newValue;
+                    Provider.of<MealProvider>(context, listen: false).setFilters();
                   }
                 ),
                 buildSwitchListTile(
                   'Vegan', 
                   'Only include vegan meals', 
-                  _vegan,
+                  currentFilters['vegan'],
                   (newValue) {
-                    setState(() {
-                      _vegan = newValue;
-                    });
+                    currentFilters['vegan'] = newValue;
+                    Provider.of<MealProvider>(context, listen: false).setFilters();
                   }
                 ),
                 buildSwitchListTile(
                   'Vegetarian', 
                   'Only include vegetarian meals', 
-                  _vegetarian,
+                  currentFilters['vegetarian'],
                   (newValue) {
-                    setState(() {
-                      _vegetarian = newValue;
-                    });
+                    currentFilters['vegetarian'] = newValue;
+                    Provider.of<MealProvider>(context, listen: false).setFilters();
                   }
                 ),
               ],

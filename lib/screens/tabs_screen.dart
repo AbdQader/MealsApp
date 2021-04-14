@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import '../models/meal.dart';
+import 'package:provider/provider.dart';
+import '../providers/language_provider.dart';
+import '../providers/meal_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/main_drawer.dart';
 import './categories_screen.dart';
 import './favorites_screen.dart';
 
 class TabsScreen extends StatefulWidget {
-
-  final List<Meal> favoriteMeals;
-
-  TabsScreen(this.favoriteMeals);
-
+  static const routeName = 'tabs_screen';
   @override
   _TabsScreenState createState() => _TabsScreenState();
 }
@@ -21,16 +20,10 @@ class _TabsScreenState extends State<TabsScreen> {
 
   @override
   void initState() {
-    _pages = [
-      {
-        'page': CategoriesScreen(),
-        'title': 'Categories'
-      },
-      {
-        'page': FavoritesScreen(widget.favoriteMeals),
-        'title': 'Your Favorites'
-      },
-    ];
+    Provider.of<MealProvider>(context, listen: false).getData();
+    Provider.of<ThemeProvider>(context, listen: false).getThemeMode();
+    Provider.of<ThemeProvider>(context, listen: false).getThemeColors();
+    Provider.of<LanguageProvider>(context, listen: false).getLan();
     super.initState();
   }
 
@@ -42,29 +35,42 @@ class _TabsScreenState extends State<TabsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_pages[_selectedPageIndex]['title']),
+    var lan = Provider.of<LanguageProvider>(context, listen: true);
+    _pages = [
+      {
+        'page': CategoriesScreen(),
+        'title': 'Categories'
+      },
+      {
+        'page': FavoritesScreen(),
+        'title': 'Your Favorites'
+      },
+    ];
+
+    return Directionality(
+      textDirection: lan.isEn ? TextDirection.ltr : TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(title: Text(_pages[_selectedPageIndex]['title'])),
+        body: _pages[_selectedPageIndex]['page'],
+        bottomNavigationBar: BottomNavigationBar(
+          onTap: _selectPage,
+          backgroundColor: Theme.of(context).primaryColor,
+          selectedItemColor: Theme.of(context).accentColor,
+          unselectedItemColor: Colors.white,
+          currentIndex: _selectedPageIndex,
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.category),
+              title: Text(lan.getTexts('categories')),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.star),
+              title: Text(lan.getTexts('your_favorites')),
+            ),
+          ],
+        ),
+        drawer: MainDrawer(),
       ),
-      body: _pages[_selectedPageIndex]['page'],
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: (value) => _selectPage(value),
-        backgroundColor: Theme.of(context).primaryColor,
-        selectedItemColor: Theme.of(context).accentColor,
-        unselectedItemColor: Colors.white,
-        currentIndex: _selectedPageIndex,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category),
-            title: Text('Categories'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            title: Text('Favorite'),
-          ),
-        ],
-      ),
-      drawer: MainDrawer(),
     );
   }
 }
