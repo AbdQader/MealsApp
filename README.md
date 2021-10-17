@@ -1,6 +1,6 @@
 # Flutter Meal App
 
-🚀 A new Flutter project application.
+🚀 A new Flutter project application that allows users to browse a list of meals and categories.
 
 ![Meals_App](https://user-images.githubusercontent.com/64075836/137608297-0d859c92-1939-4003-87d2-06264a1f75c3.jpg)
 
@@ -8,6 +8,18 @@
 
 ## Overview
 It is an application that displays several categories of meals, and each meal contains the ingredients and steps for making this meal, in addition to the ability to filter meals to suit the user's taste.
+
+---
+
+## Features
+
+This app contains the following features:
+
+- Browse meal categories.
+- Browse category meals.
+- Add a meal to favorites.
+- Remove meal from favorites.
+- Filter meals to Gluten-free, Lactose-free, Vegan, and Vegetarian.
 
 ---
 
